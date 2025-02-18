@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchURL } from "./SearchURLContext";
 
 type YouTubeSearchResponse = {
@@ -52,37 +52,31 @@ type Thumbnail = {
 }
 
 const SearchBarComponent = () => {
+  const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useState("");
   const apiKey = import.meta.env.VITE_YOUTUBE_API_KEY;
   const onChangeSearchParams = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchParams(e.target.value);
   }
-  const getYoutubeAPI = () => {
-    setSearchGetURL(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=25&q=${searchParams} 노래방&type=video&videoCategoryId=10&key=${apiKey}`);
-  }
 
-  const onKeyDownSearchParams =(e : React.KeyboardEvent<HTMLInputElement>) => {
+  const onEnterKeyDownSearchParams = async (e : React.KeyboardEvent<HTMLInputElement> & React.ChangeEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      getYoutubeAPI();
+      const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=25&q=${e.target.value} 노래방&type=video&videoCategoryId=10&key=${apiKey}`
+      await queryClient.fetchQuery<YouTubeSearchResponse>({
+        queryKey: ["search", e.target.value],
+        queryFn: async () => {
+          const response = await fetch(url);
+          const result: YouTubeSearchResponse = await response.json();
+          return result;
+        },
+        staleTime: 1000 * 10
+      })
       setSearchParams("");
-      refetch();
     }
   }
-  // const [searchGetURL, setSearchGetURL] = useState(`https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=25&q=${searchParams} 노래방&type=video&videoCategoryId=10&key=${apiKey}`);
-  const {searchGetURL, setSearchGetURL} = useSearchURL();
-  const { data, isStale, refetch } = useQuery<YouTubeSearchResponse>({
-    queryKey: ["search"],
-    queryFn: async () => {
-      const response = await fetch(searchGetURL);
-      const result: YouTubeSearchResponse = await response.json();
-      return result;
-    },
-    enabled : false,
-    staleTime: 1000 * 10
-  })
-
+  
   return (<div>
-    <input value={searchParams} onChange={onChangeSearchParams} onKeyDown={onKeyDownSearchParams} type="text" />
+    <input value={searchParams} onChange={onChangeSearchParams} onKeyDown={onEnterKeyDownSearchParams} type="text" />
   </div>)
 }
 

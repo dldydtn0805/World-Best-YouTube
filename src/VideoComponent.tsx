@@ -52,20 +52,18 @@ const VideoComponent = () => {
   }
   
   const {searchGetURL, setSearchGetURL} = useSearchURL();
-  const searchData  = queryClient.ensureQueryData<YouTubeSearchResponse>({
-    queryKey: ["search"],
-    queryFn: async () => {
-      const response = await fetch(searchGetURL);
-      const result: YouTubeSearchResponse = await response.json();
-      return result;
-    },
-    staleTime: 1000 * 10
-  });
-  console.log(searchData);
-
+  const { data } = useQuery<YouTubeSearchResponse>({
+      queryKey: ["search"],
+      enabled : false,
+      staleTime: 1000 * 10
+  })
   return (
     <div>
       {searchGetURL}
+      {data?.items.map((e)=> 
+      <img key = {e.id.videoId} src={`${e.snippet.thumbnails.high.url}`} alt="" />
+      )}
+      
     </div>
   )
 }
