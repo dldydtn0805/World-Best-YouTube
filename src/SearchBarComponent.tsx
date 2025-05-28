@@ -7,7 +7,7 @@ const SearchBarComponent = () => {
   const apiKey = import.meta.env.VITE_YOUTUBE_API_KEY;
 
   const clickCountyCodeButton = async (countryCode: string) => {
-    const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&chart=mostPopular&regionCode=${countryCode}&maxResults=10&key=${apiKey}`;
+    const url = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&chart=mostPopular&regionCode=${countryCode}&maxResults=50&key=${apiKey}`;
     await queryClient.fetchQuery<YouTubeVideoListResponse>({
       queryKey: ["search"],
       queryFn: async () => {
